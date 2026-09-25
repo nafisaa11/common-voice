@@ -43,4 +43,4 @@ RUN yarn
 RUN yarn build
 
 # Default command to start the server
-CMD yarn start 2>&1 | tee /code/logs/voice-server.log
+CMD yarn start:prod 2>&1 | tee /code/logs/voice-server.log

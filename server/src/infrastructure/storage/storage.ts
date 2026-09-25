@@ -11,7 +11,7 @@ export type Metadata = {
 }
 
 const storage =
-  getConfig().ENVIRONMENT === 'local'
+  getConfig().USE_LOCAL_STORAGE
     ? new Storage({
         apiEndpoint: getConfig().STORAGE_LOCAL_DEVELOPMENT_ENDPOINT,
         projectId: 'local',

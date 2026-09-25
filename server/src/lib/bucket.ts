@@ -34,22 +34,23 @@ export default class Bucket {
    * Fetch a public url for the resource.
    */
   public async getPublicUrl(key: string, bucketType?: string): Promise<string> {
-    const { DATASET_BUCKET_NAME, CLIP_BUCKET_NAME, ENVIRONMENT } = getConfig()
+  const { DATASET_BUCKET_NAME, CLIP_BUCKET_NAME, USE_LOCAL_STORAGE, STORAGE_PUBLIC_URL } = getConfig()
 
-    const bucket =
-      bucketType === 'dataset' ? DATASET_BUCKET_NAME : CLIP_BUCKET_NAME
+  const bucket =
+    bucketType === 'dataset' ? DATASET_BUCKET_NAME : CLIP_BUCKET_NAME
 
-    if (ENVIRONMENT === 'local') {
-      return `http://localhost:8080/storage/v1/b/${bucket}/o/${key}?alt=media`
-    }
-
-    const url = await pipe(
-      getSignedUrlFromBucket(bucket)(key),
-      TE.getOrElse(() => T.of(`Cannot get signed url for ${key}`))
-    )()
-
-    return url
+  if (USE_LOCAL_STORAGE) {
+    const base = STORAGE_PUBLIC_URL ?? 'http://localhost:8080'
+    return `${base}/storage/v1/b/${bucket}/o/${key}?alt=media`
   }
+
+  const url = await pipe(
+    getSignedUrlFromBucket(bucket)(key),
+    TE.getOrElse(() => T.of(`Cannot get signed url for ${key}`))
+  )()
+
+  return url
+}
 
   /**
    * Construct the public URL for a resource that needs no token

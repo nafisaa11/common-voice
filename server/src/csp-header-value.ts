@@ -35,6 +35,7 @@ const SOURCES = {
     'https://*.amazonaws.com',
     'https://*.amazon.com',
     'https://*.googleapis.com',
+    'https://storage-voice-wobsongo.impactscope.io'
   ],
   'script-src': [
     "'self'",
@@ -60,6 +61,7 @@ const SOURCES = {
     '*.paypalobjects.com',
     'pay.google.com ',
     '*.src.mastercard.com',
+    'https://analytics.google.com',
   ],
   'font-src': [
     "'self'",

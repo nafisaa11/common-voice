@@ -143,6 +143,7 @@ async function importLocaleSentences(
       )
       .on('end', resolve)
   })
+    print('finished', locale)
 }
 
 export async function importSentences(pool: any, import_languages: string[]) {
@@ -193,25 +194,36 @@ export async function importSentences(pool: any, import_languages: string[]) {
   ;(await useRedis) &&
     (await redis.set('sentences-version', version.toString()))
 
-  await pool.query(
-    `
-      DELETE FROM sentences
-      WHERE id NOT IN (SELECT original_sentence_id FROM clips) AND
-            id NOT IN (SELECT sentence_id FROM skipped_sentences) AND
-            id NOT IN (SELECT sentence_id FROM reported_sentences) AND
-            id NOT IN (SELECT sentence_id FROM taxonomy_entries) AND
-            version <> ?
-    `,
-    [version]
-  )
-  await pool.query(
-    `
-      UPDATE sentences
-      SET is_used = FALSE
-      WHERE version <> ?
-    `,
-    [version]
-  )
+    // Only clean up sentences of the locales imported in this run,
+    // so importing a subset does not wipe other locales.
+    const [localeRows] = await pool.query(
+      'SELECT id FROM locales WHERE name IN (?)',
+      [importable_locales]
+    )
+    const localeIds = (localeRows as { id: number }[]).map(r => r.id)
+
+    if (localeIds.length > 0) {
+      await pool.query(
+        `
+          DELETE FROM sentences
+          WHERE id NOT IN (SELECT original_sentence_id FROM clips) AND
+                id NOT IN (SELECT sentence_id FROM skipped_sentences) AND
+                id NOT IN (SELECT sentence_id FROM reported_sentences) AND
+                id NOT IN (SELECT sentence_id FROM taxonomy_entries) AND
+                version <> ? AND
+                locale_id IN (?)
+        `,
+        [version, localeIds]
+      )
+      await pool.query(
+        `
+          UPDATE sentences
+          SET is_used = FALSE
+          WHERE version <> ? AND locale_id IN (?)
+        `,
+        [version, localeIds]
+      )
+    }
 
   const [localeCounts] = (await pool.query(
     `

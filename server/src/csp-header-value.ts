@@ -103,8 +103,22 @@ const SOURCES = {
 }
 
 function getCSPHeaderValue() {
-  const { PROD } = getConfig()
+  const { PROD, STORAGE_PUBLIC_URL } = getConfig()
   const localhostURLs = 'http://localhost:*'
+
+  // allow audio clips to be loaded from the configured storage domain
+  if (STORAGE_PUBLIC_URL) {
+    try {
+      const storageOrigin = new URL(STORAGE_PUBLIC_URL).origin
+      for (const directive of ['media-src', 'connect-src'] as const) {
+        if (!SOURCES[directive].includes(storageOrigin)) {
+          SOURCES[directive].push(storageOrigin)
+        }
+      }
+    } catch (e) {
+      console.warn('Invalid CV_STORAGE_PUBLIC_URL')
+    }
+  }
 
   /*
     default to production mode to make sure we

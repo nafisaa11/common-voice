@@ -40,3 +40,13 @@ jobs:
           platforms: linux/amd64
           cache-from: type=gha
           cache-to: type=gha,mode=max
+
+      - name: Trigger Dokploy Deployment
+        run: |
+          echo "Triggering Dokploy deploy for app ${{ vars.DOKPLOY_COMMONVOICE_APPLICATION_ID }}..."
+          curl -X POST \
+            "${{ vars.DOKPLOY_URL }}/api/application.deploy" \
+            -H "accept: application/json" \
+            -H "x-api-key: ${{ secrets.DOKPLOY_AUTH_TOKEN }}" \
+            -H "Content-Type: application/json" \
+            -d "{\"applicationId\": \"${{ vars.DOKPLOY_COMMONVOICE_APPLICATION_ID }}\"}"
